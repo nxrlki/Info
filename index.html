@@ -1,64 +1,66 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PDF Preview</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
-<style>
-body {
-    background-color: #FFFFFF;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 100vw;
-    min-height: 100vh;
-}
-canvas {
-    display: block;
-    width: 100%;
-    max-width: 100%;
-    height: auto;
-}
-</style>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>NxRl Ki</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <style>
+        body {
+            background-color: #FFFFFF;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        #pdf-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+        canvas {
+            display: block;
+            max-width: 100%;
+            height: auto !important;
+        }
+    </style>
 </head>
 <body>
+    <div id="pdf-container"></div>
+    <script>
+        var url = 'filename.pdf'; 
+        var scale = 1; 
 
-<script>
-var url = 'Info.pdf'; 
+        var pdfjsLib = window['pdfjs-dist/build/pdf'];
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
 
-var pdfjsLib = window['pdfjs-dist/build/pdf'];
-pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+        pdfjsLib.getDocument(url).promise.then(function(pdf) {
+            var container = document.getElementById('pdf-container');
+            for (var i = 1; i <= pdf.numPages; i++) {
+                pdf.getPage(i).then(function(page) {
+                    var dpr = window.devicePixelRatio || 1;
+                    var viewport = page.getViewport({ scale: scale });
+                    var canvas = document.createElement('canvas');
+                    var ctx = canvas.getContext('2d');
 
-var loadingTask = pdfjsLib.getDocument(url);
-loadingTask.promise.then(function(pdf) {
-    for (var pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-        pdf.getPage(pageNum).then(function(page) {
-            
-            var scale = 1; 
-            var viewport = page.getViewport({scale: scale});
+                    canvas.width = viewport.width * dpr;
+                    canvas.height = viewport.height * dpr;
+                    canvas.style.width = viewport.width + "px";
+                    canvas.style.height = viewport.height + "px";
+                    
+                    ctx.scale(dpr, dpr);
+                    container.appendChild(canvas);
 
-            var canvas = document.createElement('canvas');
-            var context = canvas.getContext('2d');
-            
-            canvas.height = viewport.height;
-            canvas.width = viewport.width;
-
-            document.body.appendChild(canvas);
-
-            var renderContext = {
-                canvasContext: context,
-                viewport: viewport
-            };
-            page.render(renderContext);
+                    page.render({
+                        canvasContext: ctx,
+                        viewport: viewport
+                    });
+                });
+            }
         });
-    }
-}, function (reason) {
-    console.error(reason);
-});
-</script>
-
+    </script>
 </body>
 </html>
