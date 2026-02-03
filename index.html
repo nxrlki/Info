@@ -9,21 +9,25 @@
 body {
     background-color: #FFFFFF;
     margin: 0;
-    padding: 20px 0;
+    padding: 0;
     display: flex;
     flex-direction: column;
     align-items: center;
+    width: 100vw;
+    min-height: 100vh;
 }
 canvas {
-    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-    margin-bottom: 20px;
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    height: auto;
 }
 </style>
 </head>
 <body>
 
 <script>
-var url = 'Info.pdf';
+var url = 'Info.pdf'; 
 
 var pdfjsLib = window['pdfjs-dist/build/pdf'];
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
@@ -32,11 +36,13 @@ var loadingTask = pdfjsLib.getDocument(url);
 loadingTask.promise.then(function(pdf) {
     for (var pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
         pdf.getPage(pageNum).then(function(page) {
-            var scale = 1; // size
+            
+            var scale = 1; 
             var viewport = page.getViewport({scale: scale});
 
             var canvas = document.createElement('canvas');
             var context = canvas.getContext('2d');
+            
             canvas.height = viewport.height;
             canvas.width = viewport.width;
 
