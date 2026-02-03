@@ -32,7 +32,7 @@ var loadingTask = pdfjsLib.getDocument(url);
 loadingTask.promise.then(function(pdf) {
     for (var pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
         pdf.getPage(pageNum).then(function(page) {
-            var scale = 1.5; // size
+            var scale = 1; // size
             var viewport = page.getViewport({scale: scale});
 
             var canvas = document.createElement('canvas');
