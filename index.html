@@ -16,15 +16,15 @@
             min-height: 100vh;
         }
         #pdf-container {
+            width: 100%;
             display: flex;
             flex-direction: column;
             align-items: center;
-            width: 100%;
         }
         .page-wrapper {
             position: relative;
+            max-width: 100%;
             margin-bottom: 20px;
-            width: 100%;
         }
         canvas {
             display: block;
@@ -57,25 +57,23 @@
             var container = document.getElementById('pdf-container');
             for (var i = 1; i <= pdf.numPages; i++) {
                 pdf.getPage(i).then(function(page) {
-                    var baseViewport = page.getViewport({ scale: 1 });
-                    var scale = Math.min(1, window.innerWidth / baseViewport.width);
-                    var viewport = page.getViewport({ scale: scale });
-
-                    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+                    var viewport = page.getViewport({ scale: 1 });
+                    
+                    var dpr = window.devicePixelRatio || 1;
                     if (viewport.height * dpr > 4000) dpr = 4000 / viewport.height;
                     if (viewport.width * dpr > 4000) dpr = 4000 / viewport.width;
 
                     var wrapper = document.createElement('div');
                     wrapper.className = 'page-wrapper';
-                    wrapper.style.maxWidth = viewport.width + 'px';
+                    wrapper.style.width = viewport.width + 'px';
                     
                     var canvas = document.createElement('canvas');
                     var ctx = canvas.getContext('2d');
 
                     canvas.width = viewport.width * dpr;
                     canvas.height = viewport.height * dpr;
-                    
                     ctx.scale(dpr, dpr);
+                    
                     wrapper.appendChild(canvas);
 
                     var linkLayer = document.createElement('div');
@@ -95,10 +93,17 @@
                                 var a = document.createElement('a');
                                 a.href = annot.url;
                                 a.target = '_blank';
-                                a.style.left = (Math.min(rect[0], rect[2]) / viewport.width * 100) + '%';
-                                a.style.top = (Math.min(rect[1], rect[3]) / viewport.height * 100) + '%';
-                                a.style.width = (Math.abs(rect[2] - rect[0]) / viewport.width * 100) + '%';
-                                a.style.height = (Math.abs(rect[3] - rect[1]) / viewport.height * 100) + '%';
+                                
+                                var x = Math.min(rect[0], rect[2]);
+                                var y = Math.min(rect[1], rect[3]);
+                                var w = Math.abs(rect[2] - rect[0]);
+                                var h = Math.abs(rect[3] - rect[1]);
+
+                                a.style.left = (x / viewport.width * 100) + '%';
+                                a.style.top = (y / viewport.height * 100) + '%';
+                                a.style.width = (w / viewport.width * 100) + '%';
+                                a.style.height = (h / viewport.height * 100) + '%';
+                                
                                 linkLayer.appendChild(a);
                             }
                         });
