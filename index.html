@@ -24,11 +24,12 @@
         .page-wrapper {
             position: relative;
             margin-bottom: 20px;
+            width: 100%;
         }
         canvas {
             display: block;
-            max-width: 100%;
-            height: auto !important;
+            width: 100%;
+            height: auto;
         }
         .link-layer {
             position: absolute;
@@ -47,9 +48,8 @@
 <body>
     <div id="pdf-container"></div>
     <script>
-        var url = 'InfoV2.pdf'; 
-        var scale = 1; 
-
+        var url = 'Info.pdf'; 
+        
         var pdfjsLib = window['pdfjs-dist/build/pdf'];
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
 
@@ -57,19 +57,23 @@
             var container = document.getElementById('pdf-container');
             for (var i = 1; i <= pdf.numPages; i++) {
                 pdf.getPage(i).then(function(page) {
-                    var dpr = window.devicePixelRatio || 1;
+                    var baseViewport = page.getViewport({ scale: 1 });
+                    var scale = Math.min(1, window.innerWidth / baseViewport.width);
                     var viewport = page.getViewport({ scale: scale });
+
+                    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+                    if (viewport.height * dpr > 4000) dpr = 4000 / viewport.height;
+                    if (viewport.width * dpr > 4000) dpr = 4000 / viewport.width;
 
                     var wrapper = document.createElement('div');
                     wrapper.className = 'page-wrapper';
+                    wrapper.style.maxWidth = viewport.width + 'px';
                     
                     var canvas = document.createElement('canvas');
                     var ctx = canvas.getContext('2d');
 
                     canvas.width = viewport.width * dpr;
                     canvas.height = viewport.height * dpr;
-                    canvas.style.width = viewport.width + "px";
-                    canvas.style.height = viewport.height + "px";
                     
                     ctx.scale(dpr, dpr);
                     wrapper.appendChild(canvas);
@@ -91,10 +95,10 @@
                                 var a = document.createElement('a');
                                 a.href = annot.url;
                                 a.target = '_blank';
-                                a.style.left = Math.min(rect[0], rect[2]) + 'px';
-                                a.style.top = Math.min(rect[1], rect[3]) + 'px';
-                                a.style.width = Math.abs(rect[2] - rect[0]) + 'px';
-                                a.style.height = Math.abs(rect[3] - rect[1]) + 'px';
+                                a.style.left = (Math.min(rect[0], rect[2]) / viewport.width * 100) + '%';
+                                a.style.top = (Math.min(rect[1], rect[3]) / viewport.height * 100) + '%';
+                                a.style.width = (Math.abs(rect[2] - rect[0]) / viewport.width * 100) + '%';
+                                a.style.height = (Math.abs(rect[3] - rect[1]) / viewport.height * 100) + '%';
                                 linkLayer.appendChild(a);
                             }
                         });
