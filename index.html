@@ -21,17 +21,33 @@
             align-items: center;
             width: 100%;
         }
+        .page-wrapper {
+            position: relative;
+            margin-bottom: 20px;
+        }
         canvas {
             display: block;
             max-width: 100%;
             height: auto !important;
+        }
+        .link-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        .link-layer a {
+            position: absolute;
+            pointer-events: auto;
         }
     </style>
 </head>
 <body>
     <div id="pdf-container"></div>
     <script>
-        var url = 'Info.pdf'; 
+        var url = 'InfoV2.pdf'; 
         var scale = 1; 
 
         var pdfjsLib = window['pdfjs-dist/build/pdf'];
@@ -43,6 +59,10 @@
                 pdf.getPage(i).then(function(page) {
                     var dpr = window.devicePixelRatio || 1;
                     var viewport = page.getViewport({ scale: scale });
+
+                    var wrapper = document.createElement('div');
+                    wrapper.className = 'page-wrapper';
+                    
                     var canvas = document.createElement('canvas');
                     var ctx = canvas.getContext('2d');
 
@@ -52,11 +72,32 @@
                     canvas.style.height = viewport.height + "px";
                     
                     ctx.scale(dpr, dpr);
-                    container.appendChild(canvas);
+                    wrapper.appendChild(canvas);
+
+                    var linkLayer = document.createElement('div');
+                    linkLayer.className = 'link-layer';
+                    wrapper.appendChild(linkLayer);
+                    container.appendChild(wrapper);
 
                     page.render({
                         canvasContext: ctx,
                         viewport: viewport
+                    }).promise.then(function() {
+                        return page.getAnnotations();
+                    }).then(function(annotations) {
+                        annotations.forEach(function(annot) {
+                            if (annot.url) {
+                                var rect = viewport.convertToViewportRectangle(annot.rect);
+                                var a = document.createElement('a');
+                                a.href = annot.url;
+                                a.target = '_blank';
+                                a.style.left = Math.min(rect[0], rect[2]) + 'px';
+                                a.style.top = Math.min(rect[1], rect[3]) + 'px';
+                                a.style.width = Math.abs(rect[2] - rect[0]) + 'px';
+                                a.style.height = Math.abs(rect[3] - rect[1]) + 'px';
+                                linkLayer.appendChild(a);
+                            }
+                        });
                     });
                 });
             }
